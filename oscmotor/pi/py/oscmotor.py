@@ -1,5 +1,6 @@
 import OSC
 from Adafruit_MotorHAT import Adafruit_MotorHAT, Adafruit_DCMotor, Adafruit_StepperMotor
+from flask import jsonify
 
 import time
 import atexit
@@ -20,13 +21,27 @@ myStepper = mh.getStepper(200, 1)  # 200 steps/rev, motor port #1
 myStepper.setSpeed(1000)             # 30 RPM
 
 def handler(addr, tags, data, client_address):
+    print(data)
     txt = "OSCMessage '%s' from %s: " % (addr, client_address)
     txt += str(data)
-    myStepper.step(200, Adafruit_MotorHAT.FORWARD,  Adafruit_MotorHAT.DOUBLE)
-    print(txt)
+    dir = Adafruit_MotorHAT.FORWARD
+    if data[1] == 'backward':
+		dir = Adafruit_MotorHAT.BACKWARD
+    
+    style = Adafruit_MotorHAT.SINGLE
+    if data[2] == 'double':
+		style = Adafruit_MotorHAT.DOUBLE
+    if data[2] == 'interleave':
+		style = Adafruit_MotorHAT.INTERLEAVE
+    if data[2] == 'microstep':
+		style = Adafruit_MotorHAT.MICROSTEP
+
+    
+    myStepper.step(data[0], dir,  style)
+    
 
 
 if __name__ == "__main__":
-    s = OSC.OSCServer(('0.0.0.0', 2222))  # listen on localhost, port 57120
-    s.addMsgHandler('/startup', handler)     # call handler() for OSC messages received with the /startup address
+    s = OSC.OSCServer(('0.0.0.0', 2222)) 
+    s.addMsgHandler('/startup', handler)     
     s.serve_forever()
