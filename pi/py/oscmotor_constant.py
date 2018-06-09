@@ -29,6 +29,7 @@ class Shape:
         self.stepper.setSpeed(10000)
         self.dir = Adafruit_MotorHAT.FORWARD
         self.style = Adafruit_MotorHAT.SINGLE
+        self.state = 0
         print('init');
 
     def area(self):
@@ -39,11 +40,14 @@ class Shape:
         
     def run(self):
         while True:
-            self.stepper.step(1, self.dir,  self.style)
+            if self.state == 1:
+                self.stepper.step(1, self.dir,  self.style)
         
     def describe(self, data):
         print(self.description)
         print(data)
+        
+        self.state = 1
         
         self.stepper.setSpeed(data[0])
         
@@ -61,8 +65,8 @@ class Shape:
             self.style = Adafruit_MotorHAT.MICROSTEP
         
 
-    def authorName(self, text):
-        self.author = text
+    def stop(self):
+        self.state = 0
 
     def scaleSize(self, scale):
         self.x = self.x * scale
@@ -71,13 +75,17 @@ class Shape:
 
 rectangle = Shape(100, 45)
 
-
 thread.start_new_thread ( rectangle.run, () )
 
 def handler(addr, tags, data, client_address):
 	rectangle.describe(data)
+
+def stophandle(addr, tags, data, client_address):
+	rectangle.stop()
+
 	
 if __name__ == "__main__":
     s = OSC.OSCServer(('0.0.0.0', 2222)) 
-    s.addMsgHandler('/startup', handler)     
+    s.addMsgHandler('/startup', handler)
+    s.addMsgHandler('/stop', stophandle)     
     s.serve_forever()
