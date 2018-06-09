@@ -25,7 +25,8 @@ def handler(addr, tags, data, client_address):
     myStepper.step(200, Adafruit_MotorHAT.FORWARD,  Adafruit_MotorHAT.DOUBLE)
     print(txt)
 
+
 if __name__ == "__main__":
-    s = OSC.OSCServer(('0.0.0.0', 2222))  
-    s.addMsgHandler('/startup', handler
+    s = OSC.OSCServer(('0.0.0.0', 2222))  # listen on localhost, port 57120
+    s.addMsgHandler('/startup', handler)     # call handler() for OSC messages received with the /startup address
     s.serve_forever()
